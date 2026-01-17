@@ -9,7 +9,7 @@
 
 #include <usb.h>
 #include <wdfusb.h>
-#include <UdeCx.h>
+#include <ude/1.1/UdeCx.h>
 
 namespace usbip
 {

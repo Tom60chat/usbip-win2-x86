@@ -25,7 +25,14 @@
 #include <wx/textdlg.h>
 #include <wx/headerctrl.h>
 #include <wx/clipbrd.h>
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable: 4018 4389) // signed/unsigned mismatch
+#endif
 #include <wx/persist/dataview.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 #include <format>
 #include <set>
@@ -230,7 +237,11 @@ auto get_selected_devices(_In_ const wxTreeListCtrl &tree)
         tree.GetSelections(v);
 
         auto pred = [&tree] (auto &item) { return is_server_or_empty(tree, item); };
+#if _WIN64
         std::erase_if(v, pred); // v.erase(std::remove_if(v.begin(), v.end(), pred), v.end());
+#else
+        v.erase(std::remove_if(v.begin(), v.end(), pred), v.end());
+#endif
 
         return v;
 }
@@ -432,10 +443,18 @@ wxWithImages::Images MainFrame::get_tree_images()
         auto server = wxArtProvider::GetBitmap(wxASCII_STR(wxART_GO_HOME), wxASCII_STR(wxART_LIST));
         auto device = wxBitmapBundle::FromSVGResource(wxASCII_STR("usb_svg"), server.GetSize());
 
+#if _WIN64
         return wxWithImages::Images { 
-                std::move(server),
+                wxBitmapBundle(std::move(server)),
                 std::move(device) 
         };
+#else
+        // x86: avoid brace initialization ambiguity with wxVector range constructor
+        wxWithImages::Images images;
+        images.push_back(wxBitmapBundle(std::move(server)));
+        images.push_back(std::move(device));
+        return images;
+#endif
 }
 
 void MainFrame::restore_state()

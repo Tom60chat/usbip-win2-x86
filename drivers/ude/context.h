@@ -11,7 +11,7 @@
 #include <usbip\proto.h>
 
 #include <wdfusb.h>
-#include <UdeCx.h>
+#include <ude/1.1/UdeCx.h>
 
 #include <initguid.h>
 #include <usbip\vhci.h>
